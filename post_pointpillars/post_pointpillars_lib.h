@@ -14,7 +14,6 @@ extern "C" {
 #define CENTER_RATIO	0.5
 #define CENTER_RATIO_H	1
 #define PRE_MAX_SIZE	1000
-#define POST_MAX_SIZE	300
 #define AVS_PI			3.141592653
 
 float	debug_cache[1024];
@@ -50,6 +49,8 @@ void direction_classifier(POINTPILLARS_POST_INFO *inbuf, AVS_POST_FILTER *filter
 void box_lidar_to_camera(POINTPILLARS_POST_INFO *inbuf, AVS_POST_FILTER *filter);
 
 void get_box_3d(POINTPILLARS_POST_INFO *inbuf, AVS_POST_FILTER *filter);
+
+void get_output_info(POINTPILLARS_POST_INFO *inbuf, AVS_POST_FILTER *filter);
 
 #ifdef __cplusplus
 }

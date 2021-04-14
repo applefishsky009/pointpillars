@@ -17,7 +17,7 @@ typedef struct _POINTPILLARS_POST_INFO_ {
 	AVS_PP_RPN_OUT			rpn_out;
 	AVS_POST_IN				post_in;
 	// post outµÄÊý¾Ý
-	// AVS_POST_OUT			post_out;
+	AVS_POST_OUT			post_out;
 }POINTPILLARS_POST_INFO;
 
 unsigned int PointPillars_Post_GetMemSize(		POINTPILLARS_POST_INFO		*input,

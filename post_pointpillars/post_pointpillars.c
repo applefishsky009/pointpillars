@@ -42,6 +42,9 @@ unsigned int PointPillars_Post_GetMemSize(		POINTPILLARS_POST_INFO		*input,
 	// 相机坐标系的2D输出所用内存, 位于filter
 	mem_size += PRE_MAX_SIZE * AVS_ANCHOR_NUM * sizeof(float) + AVS_MEM_ALIGN_128BYTE;
 
+	// 输出内存 位于output
+	mem_size += POST_MAX_SIZE * sizeof(AVS_LIDAR_OBJ) + AVS_MEM_ALIGN_128BYTE;
+
 	mem_tab[0].size = mem_size;
 	mem_tab[0].base = NULL;
 	mem_tab[0].alignment = AVS_MEM_ALIGN_128BYTE;
@@ -115,6 +118,10 @@ unsigned int PointPillars_Post_CreatMemSize(	POINTPILLARS_POST_INFO		*input,
 	filter->box_preds_2d = (float *)AVS_POST_COM_alloc_buffer(&mem_buf, PRE_MAX_SIZE * AVS_ANCHOR_NUM * sizeof(float));
 	AVS_CHECK_ERROR(filter->box_preds_2d == NULL, AVS_LIB_PTR_NULL);
 
+	// 输出内存 位于output
+	input->post_out.lidar_obj = (AVS_LIDAR_OBJ *)AVS_POST_COM_alloc_buffer(&mem_buf, POST_MAX_SIZE * sizeof(AVS_LIDAR_OBJ));
+	AVS_CHECK_ERROR(filter->box_preds_2d == NULL, AVS_LIB_PTR_NULL);
+
 	*handle = (void *)filter;
 	printf("CreatMemSize Done!\n");
 	return 0;
@@ -162,6 +169,9 @@ unsigned int PointPillars_Post_Proc(			void						*handle,
 
 	// box_3d
 	get_box_3d(inbuf, filter);
+
+	// 输出
+	get_output_info(inbuf, filter);
 
 	printf("Proc Done!\n");
 	return 0;

@@ -297,7 +297,7 @@ void box_lidar_to_camera(POINTPILLARS_POST_INFO *inbuf, AVS_POST_FILTER *filter)
 void get_box_3d(POINTPILLARS_POST_INFO *inbuf, AVS_POST_FILTER *filter) {
 	int i = 0, j = 0;
 	float *box_pred = filter->box_preds_camera;
-	float *box_2d = filter->box_2d;
+	float *box_2d = filter->box_preds_2d;
 	float p2_transpose[4][4] = { 0.f };
 	matrix_transpose(inbuf->post_in.p2, 4, 4, p2_transpose);
 	for (i = 0; i < filter->mask_num; ++i) {	// l h w
@@ -367,6 +367,55 @@ void get_box_3d(POINTPILLARS_POST_INFO *inbuf, AVS_POST_FILTER *filter) {
 			point_2d[j][0] /= point_2d[j][2];
 			point_2d[j][1] /= point_2d[j][2];
 		}
-		int kkk = 0;
+		box_2d[AVS_ANCHOR_W * i + 0] = AVS_MIN(point_2d[0][0], AVS_MIN(point_2d[1][0], 
+			AVS_MIN(point_2d[2][0], AVS_MIN(point_2d[3][0], AVS_MIN(point_2d[4][0], 
+				AVS_MIN(point_2d[5][0], AVS_MIN(point_2d[6][0], point_2d[7][0])))))));
+		box_2d[AVS_ANCHOR_W * i + 1] = AVS_MIN(point_2d[0][1], AVS_MIN(point_2d[1][1],
+			AVS_MIN(point_2d[2][1], AVS_MIN(point_2d[3][1], AVS_MIN(point_2d[4][1],
+				AVS_MIN(point_2d[5][1], AVS_MIN(point_2d[6][1], point_2d[7][1])))))));
+		box_2d[AVS_ANCHOR_W * i + 2] = AVS_MAX(point_2d[0][0], AVS_MAX(point_2d[1][0],
+			AVS_MAX(point_2d[2][0], AVS_MAX(point_2d[3][0], AVS_MAX(point_2d[4][0],
+				AVS_MAX(point_2d[5][0], AVS_MAX(point_2d[6][0], point_2d[7][0])))))));
+		box_2d[AVS_ANCHOR_W * i + 3] = AVS_MAX(point_2d[0][1], AVS_MAX(point_2d[1][1],
+			AVS_MAX(point_2d[2][1], AVS_MAX(point_2d[3][1], AVS_MAX(point_2d[4][1],
+				AVS_MAX(point_2d[5][1], AVS_MAX(point_2d[6][1], point_2d[7][1])))))));
+	}
+}
+
+void get_output_info(POINTPILLARS_POST_INFO *inbuf, AVS_POST_FILTER *filter) {
+	int i = 0, j = 0;
+	float	*mask_box_preds		= filter->mask_box_preds;
+	float	*box_preds_camera	= filter->box_preds_camera;
+	float	*box_preds_2d		= filter->box_preds_2d;
+	float	*conf				= filter->mask_sigmoid;
+	int		*cls				= filter->mask_cls;
+	inbuf->post_out.obj_num = filter->mask_num;
+	for (i = 0; i < inbuf->post_out.obj_num; ++i) {
+		inbuf->post_out.lidar_obj[i].box_preds.x = mask_box_preds[i * AVS_ANCHOR_W + 0];
+		inbuf->post_out.lidar_obj[i].box_preds.y = mask_box_preds[i * AVS_ANCHOR_W + 1];
+		inbuf->post_out.lidar_obj[i].box_preds.z = mask_box_preds[i * AVS_ANCHOR_W + 2];
+		inbuf->post_out.lidar_obj[i].box_preds.w = mask_box_preds[i * AVS_ANCHOR_W + 3];
+		inbuf->post_out.lidar_obj[i].box_preds.l = mask_box_preds[i * AVS_ANCHOR_W + 4];
+		inbuf->post_out.lidar_obj[i].box_preds.h = mask_box_preds[i * AVS_ANCHOR_W + 5];
+		inbuf->post_out.lidar_obj[i].box_preds.r = mask_box_preds[i * AVS_ANCHOR_W + 6];
+
+		inbuf->post_out.lidar_obj[i].box_preds_camera.x = box_preds_camera[i * AVS_ANCHOR_W + 0];
+		inbuf->post_out.lidar_obj[i].box_preds_camera.y = box_preds_camera[i * AVS_ANCHOR_W + 1];
+		inbuf->post_out.lidar_obj[i].box_preds_camera.z = box_preds_camera[i * AVS_ANCHOR_W + 2];
+		inbuf->post_out.lidar_obj[i].box_preds_camera.w = box_preds_camera[i * AVS_ANCHOR_W + 3];
+		inbuf->post_out.lidar_obj[i].box_preds_camera.l = box_preds_camera[i * AVS_ANCHOR_W + 4];
+		inbuf->post_out.lidar_obj[i].box_preds_camera.h = box_preds_camera[i * AVS_ANCHOR_W + 5];
+		inbuf->post_out.lidar_obj[i].box_preds_camera.r = box_preds_camera[i * AVS_ANCHOR_W + 6];
+
+		inbuf->post_out.lidar_obj[i].box_preds_2d.x1 = box_preds_2d[i * AVS_ANCHOR_NUM + 0];
+		inbuf->post_out.lidar_obj[i].box_preds_2d.y1 = box_preds_2d[i * AVS_ANCHOR_NUM + 1];
+		inbuf->post_out.lidar_obj[i].box_preds_2d.x2 = box_preds_2d[i * AVS_ANCHOR_NUM + 2];
+		inbuf->post_out.lidar_obj[i].box_preds_2d.y2 = box_preds_2d[i * AVS_ANCHOR_NUM + 3];
+
+		inbuf->post_out.lidar_obj[i].conf = conf[i];
+
+		inbuf->post_out.lidar_obj[i].cls = cls[i];
+
+		AVS_CHECK_BREAK(i >= POST_MAX_SIZE);
 	}
 }

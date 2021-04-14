@@ -91,7 +91,7 @@ int main() {
 	AVS_CHECK_ERROR(ans != AVS_LIB_OK, ans);
 	// 内存申请
 	AVS_alloc_mem_tab(post_mem_tab, POINTPILALRS_POST_MEM_TAB);
-	memset(post_mem_tab->base, 0, post_mem_tab->size);
+	::memset(post_mem_tab->base, 0, post_mem_tab->size);
 	// 内存分配
 	void *filter_post = nullptr;
 	ans = PointPillars_Post_CreatMemSize(&post_in, post_mem_tab, &filter_post);
@@ -100,24 +100,25 @@ int main() {
 	ans = PointPillars_Post_Init(filter_post, &post_in, sizeof(POINTPILLARS_POST_INFO));
 	AVS_CHECK_ERROR(ans != AVS_LIB_OK, ans);
 	// post数据读入
+	Mat src = imread("000001.png");
 	float post_rect[4][4] = {
 		{0.99992388,  0.00983776, -0.00744505,  0.00000000},
 		{-0.00986980,  0.99994212, -0.00427846,  0.00000000},
 		{0.00740253,  0.00435161,  0.99996310,  0.00000000},
 		{0.00000000,  0.00000000,  0.00000000,  1.00000000} };
-	memcpy(post_in.post_in.post_rect, post_rect, 4 * 4 * sizeof(float));	// rect
+	::memcpy(post_in.post_in.post_rect, post_rect, 4 * 4 * sizeof(float));	// rect
 	float trv2c[4][4] = {
 		{7.53374491e-03, -9.99971390e-01, -6.16602018e-04, -4.06976603e-03},
 		{1.48024904e-02,  7.28073297e-04, -9.99890208e-01, -7.63161778e-02},
 		{9.99862075e-01,  7.52379000e-03,  1.48075502e-02, -2.71780610e-01},
 		{0.00000000e+00,  0.00000000e+00,  0.00000000e+00,  1.00000000e+00} };
-	memcpy(post_in.post_in.trv2c, trv2c, 4 * 4 * sizeof(float));	// trv2c
+	::memcpy(post_in.post_in.trv2c, trv2c, 4 * 4 * sizeof(float));	// trv2c
 	float p2[4][4] = {
 		{7.21537720e+02, 0.00000000e+00, 6.09559326e+02, 4.48572807e+01},
 		{0.00000000e+00, 7.21537720e+02, 1.72854004e+02, 2.16379106e-01},
 		{0.00000000e+00, 0.00000000e+00, 1.00000000e+00, 2.74588400e-03},
 		{0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 1.00000000e+00} };
-	memcpy(post_in.post_in.p2, p2, 4 * 4 * sizeof(float));	// p2
+	::memcpy(post_in.post_in.p2, p2, 4 * 4 * sizeof(float));	// p2
 	string out_1		= "../txts/post_preds_dict0.txt";
 	string out_2		= "../txts/post_preds_dict1.txt";
 	string out_3		= "../txts/post_preds_dict2.txt";
@@ -134,8 +135,22 @@ int main() {
 		&post_in, sizeof(POINTPILLARS_POST_INFO),
 		&post_in, sizeof(POINTPILLARS_POST_INFO));
 	AVS_CHECK_ERROR(ans != AVS_LIB_OK, ans);
+	
 	// post 结果输出
-
+	for (int i = 0; i < post_in.post_out.obj_num; ++i) {
+		cv::Point pt1, pt2;
+		pt1.x = post_in.post_out.lidar_obj[i].box_preds_2d.x1;
+		pt1.y = post_in.post_out.lidar_obj[i].box_preds_2d.y1;
+		pt2.x = post_in.post_out.lidar_obj[i].box_preds_2d.x2;
+		pt2.y = post_in.post_out.lidar_obj[i].box_preds_2d.y2;
+		int cls = post_in.post_out.lidar_obj[i].cls;
+		if (cls == 0) {
+			cv::rectangle(src, pt1, pt2, cv::Scalar(255, 0, 0), 4, 8); // B
+		} else {
+			cv::rectangle(src, pt1, pt2, cv::Scalar(0, 255, 0), 4, 8); // G
+		}
+	}
+	cv::imwrite("00001_show.png", src);
 #endif
 	return 0;
 }

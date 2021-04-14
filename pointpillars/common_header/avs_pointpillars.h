@@ -20,6 +20,7 @@ extern "C" {
 #define AVS_ANCHOR_W				7
 
 #define AVS_CLS_NUM					2
+#define POST_MAX_SIZE				300
 
 typedef struct _AVS_PP_PREPROCESS_OUT_ {
 	float *pillar_x;	// 1x1x12000x100
@@ -54,6 +55,37 @@ typedef struct _AVS_POST_IN_ {
 	float			*anchors;		// w * h * 4	max(496 x 432 x 4)
 	float			*anchor_mask;	// w * h		max(496 x 432)
 }AVS_POST_IN;
+
+typedef struct _AVS_3D_LIDAR_OBJ_ {
+	float			x;
+	float			y;
+	float			z;
+	float			w;
+	float			l;
+	float			h;
+	float			r;
+}AVS_3D_LIDAR_OBJ;
+
+typedef struct _AVS_2D_OBJ_ {
+	float			x1;
+	float			y1;
+	float			x2;
+	float			y2;
+}AVS_2D_OBJ;
+
+typedef struct _AVS_LIDAR_OBJ_ {
+	int					cls;
+	float				conf;
+	AVS_3D_LIDAR_OBJ	box_preds;			// 最终输出的激光雷达坐标
+	AVS_3D_LIDAR_OBJ	box_preds_camera;	// 最终输出的激光雷达坐标转化为相机坐标系
+	AVS_2D_OBJ			box_preds_2d;		// 相机坐标系的2D输出
+}AVS_LIDAR_OBJ;
+
+/********** POST所用结构体 **********/
+typedef struct _AVS_POST_OUT_ {
+	unsigned int	obj_num;
+	AVS_LIDAR_OBJ	*lidar_obj;	// POST_MAX_SIZE
+}AVS_POST_OUT;
 
 #ifdef __cplusplus
 }
